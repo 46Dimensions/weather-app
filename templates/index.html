@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"/>
+    <title>Weather App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;600&display=swap" rel="stylesheet">
+</head>
+
+<body class="{% if weather and not weather.error %}{{ weather.condition }}{% else %}default{% endif %} {% if theme == 'dark' %}dark{% endif %}">
+    <a href="/toggle-theme" class="theme-toggle">
+        {% if theme == 'dark' %}
+            🌜 Dark Mode
+        {% else %}
+            ☀️ Light Mode
+        {% endif %}
+    </a>    
+
+    <h1>🌦️ Weather App</h1>
+    <form method="POST" class="weather-form" id="weather-form">
+        <input type="text" name="city" placeholder="Enter place name">
+        <input type="hidden" name="latitude" id="latitude">
+        <input type="hidden" name="longitude" id="longitude">
+        
+        <select name="forecast_type">
+            <option value="daily" {% if forecast_type == 'daily' %}selected{% endif %}>Daily Forecast</option>
+            <option value="3hour" {% if forecast_type == '3hour' %}selected{% endif %}>3-Hour Forecast</option>
+        </select>
+
+        <button type="submit">Get Weather</button>
+    </form>
+
+
+    <!-- Spinner -->
+    <div id="spinner" style="display: none;">
+        <div class="loader"></div>
+    </div>
+
+    {% if weather %}
+        {% if weather.error %}
+            <div class="error">{{ weather.error }}</div>
+        {% else %}
+            <div class="weather">
+                <h2>{{ weather.city }}</h2>
+                <p>{{ weather.temperature }}&deg;C</p>
+		        <p>Feels like: {{ weather.feels_like }}&deg;C</p>
+		        <p>Humidity: {{ weather.humidity }}%</p>
+		        <p>Pressure: {{ weather.pressure }} hPa</p>
+                <p>{{ weather.description.title() }}</p>
+                <img src="https://openweathermap.org/img/wn/{{ weather.icon }}@2x.png" alt="Weather icon">
+            </div>
+        {% endif %}
+    {% endif %}
+
+    <div id="forecast">
+        <h3 class="big-font">{{ "Daily Forecast" if forecast_type == "daily" else "3-Hour Forecast" }}</h3>
+        {% if forecast %}
+            <div class="forecast-container">
+                {% if forecast_type == "daily" %}
+                    {% for day in forecast %}
+                        <div class="forecast-card">
+                            <strong>{{ day.datetime }}</strong>
+                            <p>{{ day.temperature }}°C</p>
+                            <p>{{ day.description }}</p>
+                            <img src="https://openweathermap.org/img/wn/{{ day.icon }}@2x.png" alt="Weather icon">
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    {% for item in forecast %}
+                        <div class="forecast-card">
+                            <strong>{{ item.formatted_dt }}</strong>
+                            <p>{{ item.main.temp }}°C</p>
+                            <p>{{ item.weather[0].description }}</p>
+                            <img src="https://openweathermap.org/img/wn/{{ item.weather[0].icon }}@2x.png" alt="Weather icon">
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        {% else %}
+            <p>No forecast available.</p>
+        {% endif %}
+    </div>    
+    <p>weather-info.ddns.net</p>
+    <!--JavaScript Link-->
+    <script src="{{ url_for('static', filename='/js/scripts.js') }}"></script>      
+</body>
+</html>
