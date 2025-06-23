@@ -2,9 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Get the latest OpenWeatherMap weather data for any location worldwide, presented in an easy to use layout">
+    <meta name="keywords" content="weather, forecast, openweathermap, weather info, weather app, weather-info, weather application, weather-info.ddns.net">
     <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"/>
-    <title>Weather App</title>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;600&display=swap" rel="stylesheet">
+    {% if weather and not weather.error %}
+        <title>Weather for {{ weather.city }}</title>
+    {% else %}
+        <title>Weather Info</title>
+    {% endif %}
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;600&display=swap" rel="stylesheet"/>
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.png')}}" type="image/png"/>
 </head>
 
 <body class="{% if weather and not weather.error %}{{ weather.condition }}{% else %}default{% endif %} {% if theme == 'dark' %}dark{% endif %}">
@@ -16,9 +24,13 @@
         {% endif %}
     </a>    
 
-    <h1>🌦️ Weather App</h1>
+    <h1>🌦️ Weather Info</h1>
     <form method="POST" class="weather-form" id="weather-form">
-        <input type="text" name="city" placeholder="Enter place name">
+        <div class="tooltip-container" id="city-container">
+            <input type="text" name="city" placeholder="Enter place name" autocomplete="off" aria-describedby="city-tooltip">
+            <span class="tooltip-text" id="city-tooltip">Saved from your last input.</span>
+        </div>
+
         <input type="hidden" name="latitude" id="latitude">
         <input type="hidden" name="longitude" id="longitude">
         
@@ -28,14 +40,15 @@
         </select>
 
         <button type="submit">Get Weather</button>
+        <button type="button" id="get-location">Use My Location</button>
+        <div id="location-error" class="error" style="display: none;"></div>
     </form>
-
 
     <!-- Spinner -->
     <div id="spinner" style="display: none;">
         <div class="loader"></div>
     </div>
-
+    
     {% if weather %}
         {% if weather.error %}
             <div class="error">{{ weather.error }}</div>
@@ -46,7 +59,7 @@
 		        <p>Feels like: {{ weather.feels_like }}&deg;C</p>
 		        <p>Humidity: {{ weather.humidity }}%</p>
 		        <p>Pressure: {{ weather.pressure }} hPa</p>
-                <p>{{ weather.description.title() }}</p>
+                <p>{{ weather.description }}</p>
                 <img src="https://openweathermap.org/img/wn/{{ weather.icon }}@2x.png" alt="Weather icon">
             </div>
         {% endif %}
@@ -79,7 +92,7 @@
         {% else %}
             <p>No forecast available.</p>
         {% endif %}
-    </div>    
+    </div>
     <p>weather-info.ddns.net</p>
     <!--JavaScript Link-->
     <script src="{{ url_for('static', filename='/js/scripts.js') }}"></script>      
